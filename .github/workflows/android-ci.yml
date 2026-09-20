@@ -9,9 +9,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build & Release Android APKs
+  build-and-release:
+    name: Build & Publish Release APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -27,6 +29,13 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Extract App Version from build.gradle.kts
+        id: get_version
+        run: |
+          VERSION_NAME=$(grep 'versionName = ' app/build.gradle.kts | head -n 1 | cut -d '"' -f 2)
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "Extracted App Version: $VERSION_NAME"
+
       - name: Run Unit Tests
         run: ./gradlew testDebugUnitTest --continue
 
@@ -36,24 +45,34 @@ jobs:
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ExpenseTracker-Debug-APK
+          name: ExpenseTracker-Debug-v${{ steps.get_version.outputs.VERSION_NAME }}
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ExpenseTracker-Release-APK
+          name: ExpenseTracker-Release-v${{ steps.get_version.outputs.VERSION_NAME }}
           path: app/build/outputs/apk/release/*.apk
           retention-days: 30
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Automatically Create/Update GitHub Release
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: "v${{ steps.get_version.outputs.VERSION_NAME }}"
+          name: "Expense Tracker v${{ steps.get_version.outputs.VERSION_NAME }}"
+          body: |
+            ## Expense Tracker v${{ steps.get_version.outputs.VERSION_NAME }}
+            Automated Release built by GitHub Actions CI/CD pipeline.
+            
+            ### Included Assets:
+            - `app-debug.apk`
+            - `app-release-unsigned.apk`
           files: |
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/release/*.apk
-          generate_release_notes: true
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
