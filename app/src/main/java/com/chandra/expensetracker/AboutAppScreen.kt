@@ -39,7 +39,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutAppScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onCheckForUpdatesClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var showUpdateDialog by remember { mutableStateOf(false) }
@@ -236,7 +237,7 @@ fun AboutAppScreen(
                             iconBg = Color(0xFFFFF3E0),
                             iconTint = Color(0xFFFB8C00),
                             title = "Check for Updates",
-                            onClick = { showUpdateDialog = true }
+                            onClick = onCheckForUpdatesClick
                         )
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),

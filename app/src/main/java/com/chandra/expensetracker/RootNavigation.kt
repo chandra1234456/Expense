@@ -133,7 +133,14 @@ fun RootNavigation() {
         }
 
         composable(route = Screen.AboutApp.route) {
-            AboutAppScreen(onBackClick = { navController.popBackStack() })
+            AboutAppScreen(
+                onBackClick = { navController.popBackStack() },
+                onCheckForUpdatesClick = { navController.navigate(Screen.SoftwareUpdate.route) }
+            )
+        }
+
+        composable(route = Screen.SoftwareUpdate.route) {
+            SoftwareUpdateScreen(onBackClick = { navController.popBackStack() })
         }
 
         composable(route = Screen.TransactionHistory.route) {
