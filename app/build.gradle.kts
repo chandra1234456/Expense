@@ -9,6 +9,14 @@ plugins {
 android {
     namespace = "com.chandra.expensetracker"
     compileSdk = 36
+    signingConfigs {
+        create("release") {
+            storeFile = file("../release.jks")
+            storePassword = "dev1234"
+            keyAlias = "dev123"
+            keyPassword = "dev1234"
+        }
+    }
 
     defaultConfig {
         applicationId = "com.chandra.expensetracker"
@@ -22,8 +30,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -59,7 +68,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
@@ -74,8 +82,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
-
-    // Optional Jetpack integrations
     implementation(libs.hilt.navigation.compose)
     implementation(libs.hilt.work)
     kapt(libs.hilt.androidx.compiler)
